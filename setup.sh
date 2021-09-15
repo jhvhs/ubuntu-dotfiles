@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+set -e
+
 main() {
+  prepare_dirs
   install_packages
   lastpass_login
   setup_files
@@ -9,41 +12,50 @@ main() {
   configure_docker_creds_helper
 }
 
+prepare_dirs() {
+  mkdir -p ~/.local/share/lpass
+  mkdir -p ~/.local/bin
+}
+
 setup_files() {
   if ! grep SSH_AUTH_SOCK ~/.pam_environment; then
     cat .pam_environment >> ~/.pam_environment
   fi
 
   install git-login ~/.local/bin/
+  echo 'export PATH=$PATH:$HOME/.local/bin' > ~/.profile
+  source ~/.profile
 
   mkdir -p ~/.config/systemd/user
   cp services/* ~/.config/systemd/user/
 }
 
 install_VPN() {
-  echo "Installing GlobalProtect"
-  # shellcheck disable=SC2164
-  mkdir -p /var/tmp/GP-Linux
-  wget -q --no-check-certificate "$(lpass show gp-linux-url --note)" -O /var/tmp/GP-Linux/gpinstall.sh
-  pushd /var/tmp/GP-Linux
-    chmod 755 gpinstall.sh
-    ./gpinstall.sh
-  popd
+  if [[ ! -x gpu ]]; then
+    echo "Installing GlobalProtect"
+    # shellcheck disable=SC2164
+    mkdir -p /var/tmp/GP-Linux
+    wget -q --no-check-certificate "$(lpass show gp-linux-url --note)" -O /var/tmp/GP-Linux/gpinstall.sh
+    pushd /var/tmp/GP-Linux
+      chmod 755 gpinstall.sh
+      ./gpinstall.sh
+    popd
 
-  if sudo systemctl status systemd-resolved &> /dev/null; then
-    echo Disable annoying DNS behaviour interfering with VPN
-    sudo systemctl disable systemd-resolved
-    sudo systemctl stop systemd-resolved
-    sudo mv default.resolve.conf /etc/resolv.conf
+    if sudo systemctl status systemd-resolved &> /dev/null; then
+      echo Disable annoying DNS behaviour interfering with VPN
+      sudo systemctl disable systemd-resolved
+      sudo systemctl stop systemd-resolved
+      sudo mv default.resolve.conf /etc/resolv.conf
+    fi
+
+    if [[ "$(lsb_release -cs)" == "focal" ]] && ! grep default_conf /etc/ssl/openssl.cnf >/dev/null; then
+      echo Rewriting OpenSSL configuration of Ubuntu 20.04
+      cat tmp.openssl.top /etc/ssl/openssl.cnf tmp.openssl.bottom > ~/tmp.openssl.cnf
+      sudo mv ~/tmp.openssl.cnf /etc/ssl/openssl.cnf
+    fi
+
+    gpu --connect
   fi
-
-  if [[ "$(lsb_release -cs)" == "focal" ]] && ! grep default_conf /etc/ssl/openssl.cnf >/dev/null; then
-    echo Rewriting OpenSSL configuration of Ubuntu 20.04
-    cat tmp.openssl.top /etc/ssl/openssl.cnf tmp.openssl.bottom > ~/tmp.openssl.cnf
-    sudo mv ~/tmp.openssl.cnf /etc/ssl/openssl.cnf
-  fi
-
-  gpu --connect
 }
 
 install_packages() {
@@ -59,10 +71,12 @@ install_packages() {
   sudo usermod -aG docker "$(whoami)"
 
   echo "Installing homebrew packages"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "/home/$(whoami)/.profile"
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-  brew bundle
+  if [[ ! -x brew ]]; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "/home/$(whoami)/.profile"
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    brew bundle
+  fi
 }
 
 lastpass_login() {
@@ -71,21 +85,22 @@ lastpass_login() {
 
 install_jetbrains() {
   echo "Installing Jetbrains Projector"
+  if [[ ! -x projector ]];
+    sudo apt install -y python3 python3-pip
+    sudo apt install -y python3-cryptography
+    python3 -m pip install -U pip
 
-  sudo apt install -y python3 python3-pip
-  sudo apt install -y python3-cryptography
-  python3 -m pip install -U pip
+    sudo apt install less libxext6 libxrender1 libxtst6 libfreetype6 libxi6 -y
+    pip3 install projector-installer --user
+    source ~/.profile
 
-  sudo apt install less libxext6 libxrender1 libxtst6 libfreetype6 libxi6 -y
-  pip3 install projector-installer --user
-  source ~/.profile
+    echo Installing GoLand...
+    projector install GoLand
+    projector install-certificate GoLand --certificate <(lpass show kvs.workstation.crt --notes) --key <(lpass show kvs.workstation.key --notes)
 
-  echo Installing GoLand...
-  projector install GoLand
-  projector install-certificate GoLand --certificate <(lpass show kvs.workstation.crt --notes) --key <(lpass show kvs.workstation.key --notes)
-
-  echo Enable the GoLand password using the following prompt
-  projector config edit GoLand
+    echo Enable the GoLand password using the following prompt
+    projector config edit GoLand
+  fi
 }
 
 configure_docker_creds_helper() {
