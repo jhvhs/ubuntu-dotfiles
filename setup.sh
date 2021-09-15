@@ -22,9 +22,13 @@ setup_files() {
     cat .pam_environment >> ~/.pam_environment
   fi
 
+  if ! grep direnv ~/.profile; then
+    echo 'eval "$(direnv hook bash)"' >> ~/.profile
+  fi
+
   install git-login ~/.local/bin/
   install good-morning ~/.local/bin/
-  echo 'export PATH=$PATH:$HOME/.local/bin' > ~/.profile
+  echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.profile
   source ~/.profile
 
   mkdir -p ~/.config/systemd/user
