@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+systemctl --user start goland
+systemctl --user start ssh-agent
+gpu --connect
+git login

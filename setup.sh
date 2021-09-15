@@ -23,6 +23,7 @@ setup_files() {
   fi
 
   install git-login ~/.local/bin/
+  install good-morning ~/.local/bin/
   echo 'export PATH=$PATH:$HOME/.local/bin' > ~/.profile
   source ~/.profile
 
@@ -80,7 +81,11 @@ install_packages() {
 }
 
 lastpass_login() {
-  lpass show test --note
+  if ! lpass status > /dev/null 2>&1; then
+    echo "Please enter your LastPass username to login:"
+    read -r username
+    lpass login "$username"
+  fi
 }
 
 install_jetbrains() {
