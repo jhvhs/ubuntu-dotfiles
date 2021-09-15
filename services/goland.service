@@ -1,0 +1,10 @@
+[Unit]
+Description=Jetbrains Projector - Goland
+
+[Service]
+Type=simple
+ExecStart=%h/.projector/configs/GoLand/run.sh
+Restart=always
+
+[Install]
+WantedBy=default.target
