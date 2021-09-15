@@ -85,7 +85,7 @@ lastpass_login() {
 
 install_jetbrains() {
   echo "Installing Jetbrains Projector"
-  if [[ ! -x projector ]];
+  if [[ ! -x projector ]]; then
     sudo apt install -y python3 python3-pip
     sudo apt install -y python3-cryptography
     python3 -m pip install -U pip
@@ -96,11 +96,19 @@ install_jetbrains() {
 
     echo Installing GoLand...
     projector install GoLand
-    projector install-certificate GoLand --certificate <(lpass show kvs.workstation.crt --notes) --key <(lpass show kvs.workstation.key --notes)
+    trap cleanup_crt EXIT
+    mkdir -p "/tmp/$(whoami)/crt"
+    lpass show jb.workstation.crt --notes > "/tmp/$(whoami)/crt/jb.crt"
+    lpass show jb.workstation.key --notes > "/tmp/$(whoami)/crt/jb.key"
+    projector install-certificate GoLand --certificate "/tmp/$(whoami)/crt/jb.crt" --key "/tmp/$(whoami)/crt/jb.key"
 
     echo Enable the GoLand password using the following prompt
     projector config edit GoLand
   fi
+}
+
+cleanup_crt() {
+  rm -rf "/tmp/$(whoami)/crt"
 }
 
 configure_docker_creds_helper() {
