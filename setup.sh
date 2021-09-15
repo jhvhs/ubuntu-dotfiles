@@ -34,6 +34,7 @@ install_VPN() {
     echo Disable annoying DNS behaviour interfering with VPN
     sudo systemctl disable systemd-resolved
     sudo systemctl stop systemd-resolved
+    sudo mv default.resolve.conf /etc/resolv.conf
   fi
 
   if [[ "$(lsb_release -cs)" == "focal" ]] && ! grep default_conf /etc/ssl/openssl.cnf >/dev/null; then
@@ -54,7 +55,7 @@ install_packages() {
   curl https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo apt-add-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable'
   sudo apt update
-  sudo apt install docker-ce
+  sudo apt install -y docker-ce
   sudo usermod -aG docker "$(whoami)"
 
   echo "Installing homebrew packages"
