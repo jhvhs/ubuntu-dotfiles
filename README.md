@@ -4,7 +4,7 @@
 - GlobalProtect VPN - URL required (see below)
 - [JetBrains Projector](https://lp.jetbrains.com/projector/) with GoLand (other IDEs can be easily installed using projector)
 - docker with `pass` credentials helper
-- Kubernetes tooling: [`kind`](https://kind.sigs.k8s.io/docs/), `kubectl`, `kubectx`, `kubens`, `ko` and `kustomize`
+- Kubernetes tooling: [`kind`](https://kind.sigs.k8s.io/docs/), `kubectl`, `kubectx`, `kubens`, [`ko`](https://github.com/google/ko) and [`kustomize`](https://kustomize.io/)
 - [Go](https://golang.org/)
 - `git login` script to load your key from LastPass
 - [Carvel](https://carvel.dev) tools
