@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+
+if ! { [[ "$TERM" =~ "screen" ]] && [[ -n "$TMUX" ]]; } then
+  echo "This script is best run from a tmux session"
+  read -p "Hit [Enter] to continue, or cancel with ^C"
+fi
+
 brew upgrade
 sudo apt upgrade
 systemctl --user start goland
