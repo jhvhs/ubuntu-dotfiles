@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+brew upgrade
+sudo apt upgrade
 systemctl --user start goland
 systemctl --user start ssh-agent
 gpu --connect
