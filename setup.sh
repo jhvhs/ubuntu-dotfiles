@@ -66,7 +66,7 @@ install_VPN() {
 install_packages() {
   echo "Installing system packages"
   sudo apt update
-  sudo apt install -y apt-transport-https build-essential ca-certificates ctags curl direnv fd-find neovim python3-pip ripgrep tig firefox tree lastpass-cli tmux pass
+  sudo apt install -y apt-transport-https build-essential ca-certificates ctags curl direnv fd-find neovim python3-pip ripgrep tig firefox tree lastpass-cli tmux pass golang-ginkgo-dev
 
   echo "Installing docker"
   curl https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
